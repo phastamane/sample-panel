@@ -37,8 +37,13 @@ async function main() {
     await fs.copy(PROJECT_ROOT, targetDir, {
       filter: (src) => {
         const name = path.basename(src);
-        // Исключаем системные папки, чтобы не тащить чужую историю и зависимости
-        return !["node_modules", ".git", "dist", ".DS_Store"].includes(name);
+        return ![
+          "node_modules",
+          ".git",
+          "dist",
+          ".DS_Store",
+          ".pnpm-store",
+        ].includes(name);
       },
     });
     await fs.move(
@@ -47,14 +52,33 @@ async function main() {
       { overwrite: true },
     );
 
+    const requiredFiles = [
+      "tsconfig.json",
+      "tsconfig.app.json",
+      "tsconfig.node.json",
+      "vite.config.ts",
+    ];
+    const missing = [];
+    for (const file of requiredFiles) {
+      if (!(await fs.pathExists(path.join(targetDir, file)))) {
+        missing.push(file);
+      }
+    }
+    if (missing.length > 0) {
+      throw new Error(
+        `Шаблон пришёл неполным (${missing.join(", ")}). ` +
+          `Сбрось кэш: rm -rf ~/.cache/pnpm/dlx && pnpm dlx github:phastamane/sample-panel#main`,
+      );
+    }
+
     // 2. Адаптируем package.json под новый проект
     const pkgPath = path.join(targetDir, "package.json");
     if (await fs.pathExists(pkgPath)) {
       const pkg = await fs.readJson(pkgPath);
       pkg.name = projectName;
       pkg.version = "0.1.0";
-      // Пользователю в его конечном проекте глобальный бинарник не нужен
       delete pkg.bin;
+      delete pkg.files;
       await fs.writeJson(pkgPath, pkg, { spaces: 2 });
     }
 

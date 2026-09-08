@@ -1,31 +1,11 @@
 {
   "name": "sample-panel",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "bin": {
     "sample-panel": "./.cli/index.js"
   },
-  "files": [
-    ".cli",
-    ".vscode",
-    "src",
-    "public",
-    "index.html",
-    "vite.config.ts",
-    "tsconfig.json",
-    "tsconfig.app.json",
-    "tsconfig.node.json",
-    "eslint.config.js",
-    "components.json",
-    "orval.config.ts",
-    ".env.example",
-    ".gitignore",
-    ".prettierrc",
-    ".prettierignore",
-    "pnpm-workspace.yaml",
-    "package.json"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
