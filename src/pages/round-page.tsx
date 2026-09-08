@@ -1,4 +1,4 @@
-import DynamicTable from "@/shared/ui/DynamicTable";
+import DynamicTable from "@/shared/ui/dynamic-table";
 import { roundConfig } from "@/entities/round/api/round-api";
 
 export function RoundPage() {

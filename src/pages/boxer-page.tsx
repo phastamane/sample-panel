@@ -1,10 +1,10 @@
-import { BoxerTable } from "@/entities/boxer"; // Импорт твоей готовой таблицы
+import  DynamicTable  from '@/shared/ui/dynamic-table';
+import { boxerConfig } from '@/entities/boxer/api/boxer-api';
 
-export function BoxersPage() {
+export function BoxerPage() {
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-bold tracking-tight">Список боксеров</h1>
-      <BoxerTable />
+      <DynamicTable config={boxerConfig} />
     </div>
   );
 }

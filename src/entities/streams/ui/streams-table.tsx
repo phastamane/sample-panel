@@ -1,4 +1,4 @@
-import DynamicTable from "@/shared/ui/DynamicTable";
+import DynamicTable from "@/shared/ui/dynamic-table";
 import { streamConfig } from "../api/streams-api";
 
 function StreamTable() {

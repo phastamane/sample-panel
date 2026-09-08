@@ -26,7 +26,14 @@ export interface ConfigInterface<
   table: {
     useHook: ConfigHook<TData, TParams>;
     params?: TParams;
-    columns: { header: string; accessorKey: keyof TRow & string }[];
+    columns: {
+      header: string;
+      accessorKey: keyof TRow & string;
+      cell?: (info: {
+        getValue: () => any;
+        row: { original: TRow };
+      }) => React.ReactNode;
+    }[];
     getRows: (response: TData) => TRow[];
   };
   form?: {

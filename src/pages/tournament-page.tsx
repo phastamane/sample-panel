@@ -1,5 +1,5 @@
-import  DynamicTable  from '@/shared/ui/DynamicTable';
-import { tournamentConfig } from '@/entities/tournament/api/tournament-api';
+import DynamicTable from "@/shared/ui/dynamic-table";
+import { tournamentConfig } from "@/entities/tournament/api/tournament-api";
 
 export function TournamentPage() {
   return (

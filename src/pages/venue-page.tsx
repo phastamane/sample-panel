@@ -1,5 +1,5 @@
-import  DynamicTable  from '@/shared/ui/DynamicTable';
-import { venueConfig } from '@/entities/venue/api/venue-api';
+import DynamicTable from "@/shared/ui/dynamic-table";
+import { venueConfig } from "@/entities/venue/api/venue-api";
 
 export function VenuePage() {
   return (

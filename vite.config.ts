@@ -9,7 +9,6 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.VITE_API_PROXY_TARGET;
 
   const apiPrefixes = [
-    "boxer",
     "tournament",
     "terminal",
     "overlay",
@@ -17,10 +16,12 @@ export default defineConfig(({ mode }) => {
     "stream",
     "match",
     "round",
-    "event",
     "venue",
     "manager",
     "tournament",
+    "event",
+    "report",
+  "boxer",
   /* CLI_INJECT_PROXY */
   ];
 

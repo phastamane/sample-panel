@@ -3,12 +3,35 @@ import path from "path";
 import { text, select, confirm, isCancel, note } from "@clack/prompts";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
+import { outro } from "@clack/prompts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 async function run() {
+  const envPath = path.join(PROJECT_ROOT, ".env");
+  const envExists = await fs.pathExists(envPath);
+
+  if (!envExists) {
+    note("Это первый запуск необходимо указать адрес апи.");
+
+    const apiUrl = await text({
+      message: "Введи базовый адрес API (например, https://api.<path>.ru):",
+      validate: (value) => {
+        if (!value || value.trim() === "")
+          return "Адрес API не может быть пустым";
+        if (!value.startsWith("http"))
+          return "Адрес должен начинаться с http:// или https://";
+      },
+    });
+
+    if (isCancel(apiUrl)) process.exit(0);
+
+    await fs.writeFile(envPath, `VITE_API_PROXY_TARGET=${apiUrl}\n`);
+    note("✅ Файл .env успешно создан!", "Настройка завершена");
+  }
+
   const entityName = await text({
     message: "Как назовем сущность?",
     placeholder:
@@ -93,6 +116,8 @@ async function run() {
       ].join("\n"),
       `Сущность ${entityPascalCase} сгенерирована`,
     );
+
+    outro("made by PHASTAMANE");
   } catch (err) {
     console.error("❌ Ошибка генерации:", err);
   }

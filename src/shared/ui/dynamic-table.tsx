@@ -13,7 +13,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { ConfigInterface } from "../model/schemas/configInterface";
-import DynamicForm from "./DynamicForm";
+import DynamicForm from "./dynamic-form";
+import { SkeletonRow } from "./skeleton-row";
 
 export default function DynamicTable<
   TData,
@@ -93,14 +94,15 @@ export default function DynamicTable<
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td
-                  colSpan={config.table.columns.length}
-                  className="h-24 text-center"
-                >
-                  Загрузка...
-                </td>
-              </tr>
+              Array.from({ length: 4 }, (_, rowIndex) => (
+                <tr key={rowIndex}>
+                  {config.table.columns.map((column, colIndex) => (
+                    <td key={colIndex} className="p-4 align-middle">
+                      <SkeletonRow />
+                    </td>
+                  ))}
+                </tr>
+              ))
             ) : isError ? (
               <tr>
                 <td

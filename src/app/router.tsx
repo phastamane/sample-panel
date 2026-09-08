@@ -10,12 +10,14 @@ import LoginForm from "@/widgets/login-form/login-form";
 import { NotFound } from "@/shared/ui/not-found";
 import { GlobalError } from "@/shared/ui/global-error";
 import { MainLayout } from "@/widgets/layouts/main-layout";
-import { BoxersPage } from "@/pages/boxer-page";
 import { StreamsPage } from "@/pages/stream-page";
 import { MatchPage } from "@/pages/match-page";
 import { RoundPage } from "@/pages/round-page";
 import { VenuePage } from "@/pages/venue-page";
 import { TournamentPage } from "@/pages/tournament-page";
+import { EventPage } from "@/pages/event-page";
+import { ReportPage } from "@/pages/report-page";
+import { BoxerPage } from "@/pages/boxer-page";
 // CLI_INJECT_IMPORT
 
 const rootRoute = createRootRoute({
@@ -59,12 +61,6 @@ const indexRoute = createRoute({
   },
 });
 
-const boxersRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/boxers",
-  component: BoxersPage,
-});
-
 const streamsRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: "/streams",
@@ -92,17 +88,34 @@ const tournamentsRoute = createRoute({
   path: "/tournaments",
   component: TournamentPage,
 });
+const eventsRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: "/events",
+  component: EventPage,
+});
+const reportsRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: "/reports",
+  component: ReportPage,
+});
+const boxersRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: "/boxers",
+  component: BoxerPage,
+});
 // CLI_INJECT_ROUTE
 const routeTree = rootRoute.addChildren([
   loginRoute,
   protectedLayoutRoute.addChildren([
     indexRoute,
-    boxersRoute,
     streamsRoute,
     matchesRoute,
     roundsRoute,
     venueRoute,
     tournamentsRoute,
+    eventsRoute,
+    reportsRoute,
+    boxersRoute,
     // CLI_INJECT_TREE
   ]),
 ]);

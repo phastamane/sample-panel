@@ -24,15 +24,15 @@ export const boxerConfig = defineTableConfig<
   BoxerFormValues,
   BoxerCreateResponse
 >({
-  entityName: "Боксеры",
+  entityName: "Участники",
   table: {
     useHook: (params) => useBoxerControllerHandleBoxerList(params),
     getRows: (res) => res.data.data.boxers,
     columns: [
       { header: "ID", accessorKey: "boxerId" },
-      { header: "Имя боксера", accessorKey: "fullname" },
+      { header: "FIO", accessorKey: "fullname" },
       { header: "Создан", accessorKey: "createdAt" },
-      { header: "Обовлен", accessorKey: "updatedAt" },
+      { header: "Обновлен", accessorKey: "updatedAt" },
     ],
   },
   form: {
@@ -42,9 +42,9 @@ export const boxerConfig = defineTableConfig<
     fields: [
       {
         name: "fullname",
-        label: "Имя боксера",
+        label: "Название",
         type: "text",
-        placeholder: "Введите имя",
+        placeholder: "Введите значение",
       },
     ],
   },

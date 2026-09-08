@@ -3,7 +3,7 @@ import {
   <%= entityName %>ControllerHandle<%= entityPascalCase %>List,
   use<%= entityPascalCase %>ControllerHandle<%= entityPascalCase %>List,
 } from "@/shared/model/petstore";
-import { create<%= entityPascalCase %>BodySchema } from "@/shared/model/schemas";
+import { <%= entityName %>CreateSchemaData<%= entityPascalCase %> } from "@/shared/model/schemas";
 import { defineTableConfig } from "@/shared/model/schemas/configInterface";
 import type z from "zod";
 
@@ -12,7 +12,7 @@ type <%= entityPascalCase %>ListResponse = Awaited<
 >;
 type <%= entityPascalCase %>Row = <%= entityPascalCase %>ListResponse["data"]["data"]["<%= entityName %>s"][number];
 type <%= entityPascalCase %>ListParams = Parameters<typeof use<%= entityPascalCase %>ControllerHandle<%= entityPascalCase %>List>[0];
-type <%= entityPascalCase %>FormValues = z.infer<typeof create<%= entityPascalCase %>BodySchema>;
+  type <%= entityPascalCase %>FormValues = z.infer<typeof <%= entityName %>CreateSchemaData<%= entityPascalCase %>>;
 type <%= entityPascalCase %>CreateResponse = Awaited<
   ReturnType<typeof <%= entityName %>ControllerHandle<%= entityPascalCase %>Create>
 >;
@@ -36,7 +36,7 @@ export const <%= entityName %>Config = defineTableConfig<
     ],
   },
   form: {
-    schema: create<%= entityPascalCase %>BodySchema,
+    schema: <%= entityName %>CreateSchemaData<%= entityPascalCase %>,
     mutationFn: (data) =>
       <%= entityName %>ControllerHandle<%= entityPascalCase %>Create({ data: { <%= entityName %>: data } }),
     fields: [
