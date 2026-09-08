@@ -3,7 +3,6 @@ import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
 import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,13 +80,15 @@ async function main() {
     await fs.writeFile(envPath, `VITE_API_PROXY_TARGET=${apiUrl}\n`);
     note("✅ Файл .env успешно создан!", "Настройка завершена");
 
-    s.start("Устанавливаем зависимости...");
-    await run("pnpm", ["install"], targetDir);
-    s.stop("Установка зависимостей: complete");
-
-    s.start("Генерируем API-клиент (orval)...");
-    await run("pnpm", ["orval"], targetDir);
-    s.stop("Генерация API-клиента: complete");
+    note(
+      [
+        `cd ${projectName}`,
+        `pnpm install`,
+        `pnpm generate:api`,
+        `pnpm dev`,
+      ].join("\n"),
+      "Следующие шаги:",
+    );
 
     outro("made by phastamane");
   } catch (err) {
@@ -98,18 +99,3 @@ async function main() {
 }
 
 main();
-
-function run(cmd, args, cwd) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, {
-      cwd,
-      stdio: "inherit",
-      shell: true,
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`${cmd} ${args.join(" ")} exited with ${code}`));
-    });
-  });
-}
