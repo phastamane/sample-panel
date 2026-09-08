@@ -1,0 +1,51 @@
+import {
+  <%= entityName %>ControllerHandle<%= entityPascalCase %>Create,
+  <%= entityName %>ControllerHandle<%= entityPascalCase %>List,
+  use<%= entityPascalCase %>ControllerHandle<%= entityPascalCase %>List,
+} from "@/shared/model/petstore";
+import { <%= entityName %>CreateSchemaData<%= entityPascalCase %> } from "@/shared/model/schemas";
+import { defineTableConfig } from "@/shared/model/schemas/configInterface";
+import type z from "zod";
+
+type <%= entityPascalCase %>ListResponse = Awaited<
+  ReturnType<typeof <%= entityName %>ControllerHandle<%= entityPascalCase %>List>
+>;
+type <%= entityPascalCase %>Row = <%= entityPascalCase %>ListResponse["data"]["data"]["<%= entityName %>s"][number];
+type <%= entityPascalCase %>ListParams = Parameters<typeof use<%= entityPascalCase %>ControllerHandle<%= entityPascalCase %>List>[0];
+  type <%= entityPascalCase %>FormValues = z.infer<typeof <%= entityName %>CreateSchemaData<%= entityPascalCase %>>;
+type <%= entityPascalCase %>CreateResponse = Awaited<
+  ReturnType<typeof <%= entityName %>ControllerHandle<%= entityPascalCase %>Create>
+>;
+
+export const <%= entityName %>Config = defineTableConfig<
+  <%= entityPascalCase %>ListResponse,
+  <%= entityPascalCase %>Row,
+  <%= entityPascalCase %>ListParams,
+  <%= entityPascalCase %>FormValues,
+  <%= entityPascalCase %>CreateResponse
+>({
+  entityName: "<%= entityLabel %>",
+  table: {
+    useHook: (params) => use<%= entityPascalCase %>ControllerHandle<%= entityPascalCase %>List(params),
+    getRows: (res) => res.data.data.<%= entityName %>s,
+    columns: [
+      { header: "ID", accessorKey: "<%= entityName %>Id" },
+      { header: "Название", accessorKey: "title" },
+      { header: "Создан", accessorKey: "createdAt" },
+      { header: "Обновлен", accessorKey: "updatedAt" },
+    ],
+  },
+  form: {
+    schema: <%= entityName %>CreateSchemaData<%= entityPascalCase %>,
+    mutationFn: (data) =>
+      <%= entityName %>ControllerHandle<%= entityPascalCase %>Create({ data: { <%= entityName %>: data } }),
+    fields: [
+      {
+        name: "title",
+        label: "Название",
+        type: "text",
+        placeholder: "Введите значение",
+      },
+    ],
+  },
+});

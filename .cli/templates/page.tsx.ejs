@@ -1,0 +1,10 @@
+import  DynamicTable  from '@/shared/ui/dynamic-table';
+import { <%= entityName %>Config } from '@/entities/<%= entityName %>/api/<%= entityName %>-api';
+
+export function <%= entityPascalCase %>Page() {
+  return (
+    <div className="space-y-4">
+      <DynamicTable config={<%= entityName %>Config} />
+    </div>
+  );
+}
