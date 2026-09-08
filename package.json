@@ -8,12 +8,22 @@
   },
   "files": [
     ".cli",
+    ".vscode",
     "src",
     "public",
     "index.html",
     "vite.config.ts",
     "tsconfig.json",
-    "tailwind.config.js",
+    "tsconfig.app.json",
+    "tsconfig.node.json",
+    "eslint.config.js",
+    "components.json",
+    "orval.config.ts",
+    ".env.example",
+    ".gitignore",
+    ".prettierrc",
+    ".prettierignore",
+    "pnpm-workspace.yaml",
     "package.json"
   ],
   "scripts": {
