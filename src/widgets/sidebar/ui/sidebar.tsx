@@ -7,7 +7,7 @@ function Sidebar() {
   return (
     <aside className="flex w-64 flex-col border-r bg-background px-4 py-6">
       <div className="mb-8 px-2 text-xl font-bold tracking-tight">
-        CyberLiga Admin
+        Admin Panel
       </div>
 
       {/* Динамическая навигация из конфига */}
