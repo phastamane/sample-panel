@@ -1,13 +1,5 @@
 #!/usr/bin/env node
-import {
-  select,
-  text,
-  isCancel,
-  intro,
-  outro,
-  spinner,
-  note,
-} from "@clack/prompts";
+import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
 import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,80 +11,105 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 async function main() {
-  intro("🚀 CyberLiga Admin CLI");
+  intro("sample-admin CLI");
 
-  const action = await select({
-    message: "Что ты хочешь сделать?",
-    options: [
-      { value: "init", label: "Развернуть новый проект" },
-      { value: "generate", label: "Сгенерировать CRUD-сущность" },
-    ],
+  const projectName = await text({
+    message: "Как назовем папку с новым проектом?",
+    placeholder: "my-admin-panel",
+    validate: (value) => {
+      if (!value || value.trim() === "")
+        return "Имя проекта не может быть пустым";
+    },
   });
 
-  if (isCancel(action)) {
+  if (isCancel(projectName)) {
     outro("Отменено");
     process.exit(0);
   }
 
-  if (action === "init") {
-    const projectName = await text({
-      message: "Как назовем папку с новым проектом?",
-      placeholder: "my-admin-panel",
+  // Рабочая папка пользователя, откуда он вызвал команду
+  const targetDir = path.join(process.cwd(), projectName);
+  const envPath = path.join(targetDir, ".env");
+  const s = spinner();
+  s.start(`Клонируем FSD-шаблон в папку ${projectName}...`);
+
+  try {
+    // 1. Копируем все файлы проекта
+    await fs.copy(PROJECT_ROOT, targetDir, {
+      filter: (src) => {
+        const name = path.basename(src);
+        // Исключаем системные папки, чтобы не тащить чужую историю и зависимости
+        return !["node_modules", ".git", "dist", ".DS_Store"].includes(name);
+      },
+    });
+    await fs.move(
+      path.join(targetDir, ".cli", "orval.config.js"),
+      path.join(targetDir, "orval.config.ts"),
+      { overwrite: true },
+    );
+
+    // 2. Адаптируем package.json под новый проект
+    const pkgPath = path.join(targetDir, "package.json");
+    if (await fs.pathExists(pkgPath)) {
+      const pkg = await fs.readJson(pkgPath);
+      pkg.name = projectName;
+      pkg.version = "0.1.0";
+      // Пользователю в его конечном проекте глобальный бинарник не нужен
+      delete pkg.bin;
+      await fs.writeJson(pkgPath, pkg, { spaces: 2 });
+    }
+
+    s.stop("Проект успешно развернут!");
+
+    note("Это первый запуск, необходимо указать адрес API.");
+
+    const apiUrl = await text({
+      message: "Введи базовый адрес API (например, https://api.<path>.ru):",
       validate: (value) => {
         if (!value || value.trim() === "")
-          return "Имя проекта не может быть пустым";
+          return "Адрес API не может быть пустым";
+        if (!value.startsWith("http"))
+          return "Адрес должен начинаться с http:// или https://";
       },
     });
 
-    if (isCancel(projectName)) {
+    if (isCancel(apiUrl)) {
       outro("Отменено");
       process.exit(0);
     }
 
-    // Рабочая папка пользователя, откуда он вызвал команду
-    const targetDir = path.join(process.cwd(), projectName);
-    const s = spinner();
-    s.start(`Клонируем FSD-шаблон в папку ${projectName}...`);
+    await fs.writeFile(envPath, `VITE_API_PROXY_TARGET=${apiUrl}\n`);
+    note("✅ Файл .env успешно создан!", "Настройка завершена");
 
-    try {
-      // 1. Копируем все файлы проекта
-      await fs.copy(PROJECT_ROOT, targetDir, {
-        filter: (src) => {
-          const name = path.basename(src);
-          // Исключаем системные папки, чтобы не тащить чужую историю и зависимости
-          return !["node_modules", ".git", "dist", ".DS_Store"].includes(name);
-        },
-      });
+    s.start("Устанавливаем зависимости...");
+    await run("pnpm", ["install"], targetDir);
+    s.stop("Установка зависимостей: complete");
 
-      // 2. Адаптируем package.json под новый проект
-      const pkgPath = path.join(targetDir, "package.json");
-      if (await fs.pathExists(pkgPath)) {
-        const pkg = await fs.readJson(pkgPath);
-        pkg.name = projectName;
-        pkg.version = "0.1.0";
-        // Пользователю в его конечном проекте глобальный бинарник не нужен
-        delete pkg.bin;
-        await fs.writeJson(pkgPath, pkg, { spaces: 2 });
-      }
+    s.start("Генерируем API-клиент (orval)...");
+    await run("pnpm", ["orval"], targetDir);
+    s.stop("Генерация API-клиента: complete");
 
-      s.stop("✨ Проект успешно развернут!");
-
-      note(
-        [`cd ${projectName}`, `pnpm install`, `pnpm dev`].join("\n"),
-        "Следующие шаги:",
-      );
-
-      outro("Удачного кодинга! 🖤");
-    } catch (err) {
-      s.stop("❌ Ошибка при копировании файлов");
-      console.error(err);
-      process.exit(1);
-    }
-  } else if (action === "generate") {
-    // Запускаем наш уже готовый генератор сущностей
-    const generateScript = path.join(__dirname, "generate.js");
-    spawn("node", [generateScript], { stdio: "inherit" });
+    outro("made by phastamane");
+  } catch (err) {
+    s.stop("Ошибка при создании проекта");
+    console.error(err);
+    process.exit(1);
   }
 }
 
 main();
+
+function run(cmd, args, cwd) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(cmd, args, {
+      cwd,
+      stdio: "inherit",
+      shell: true,
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${cmd} ${args.join(" ")} exited with ${code}`));
+    });
+  });
+}
