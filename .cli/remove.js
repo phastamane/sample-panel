@@ -1,7 +1,8 @@
-import fs from "fs-extra";
 import path from "path";
-import { text, isCancel, note } from "@clack/prompts";
 import { fileURLToPath } from "url";
+import { text, isCancel, note } from "@clack/prompts";
+import fs from "fs-extra";
+import { removeProxyPrefix } from "./lib/scaffold.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +26,6 @@ async function run() {
   const pagePath = path.join(PROJECT_ROOT, `src/pages/${entityName}-page.tsx`);
   const navPath = path.join(PROJECT_ROOT, "src/shared/config/navigation.ts");
   const routerPath = path.join(PROJECT_ROOT, "src/app/router.tsx");
-  const vitePath = path.join(PROJECT_ROOT, "vite.config.ts");
 
   try {
     // 1. Удаляем физические файлы
@@ -34,7 +34,7 @@ async function run() {
 
     // 2. Очищаем Sidebar (navigation.ts)
     if (await fs.pathExists(navPath)) {
-      let navContent = await fs.readFile(navPath, "utf-8");
+      const navContent = await fs.readFile(navPath, "utf-8");
       // Ищем строку вида: { path: "/matchs", label: "Матчи" },
       const navRegex = new RegExp(
         `\\s*\\{ path: "/${entityName}s", label: "[^"]+" \\},`,
@@ -45,7 +45,7 @@ async function run() {
 
     // 3. Очищаем Router (router.tsx)
     if (await fs.pathExists(routerPath)) {
-      let routerContent = await fs.readFile(routerPath, "utf-8");
+      const routerContent = await fs.readFile(routerPath, "utf-8");
 
       const importRegex = new RegExp(
         `import \\{ ${entityPascalCase}Page \\} from "@/pages/${entityName}-page";\\n`,
@@ -57,20 +57,17 @@ async function run() {
       );
       const treeRegex = new RegExp(`\\s*${entityName}sRoute,`, "g");
 
-      routerContent = routerContent
-        .replace(importRegex, "")
-        .replace(routeRegex, "")
-        .replace(treeRegex, "");
-
-      await fs.writeFile(routerPath, routerContent);
+      await fs.writeFile(
+        routerPath,
+        routerContent
+          .replace(importRegex, "")
+          .replace(routeRegex, "")
+          .replace(treeRegex, ""),
+      );
     }
 
     // 4. Очищаем Proxy (vite.config.ts)
-    if (await fs.pathExists(vitePath)) {
-      let viteContent = await fs.readFile(vitePath, "utf-8");
-      const proxyRegex = new RegExp(`\\s*"${entityName}",`, "g");
-      await fs.writeFile(vitePath, viteContent.replace(proxyRegex, ""));
-    }
+    await removeProxyPrefix(PROJECT_ROOT, entityName);
 
     note(
       `Файлы и роуты для ${entityPascalCase} успешно удалены.`,

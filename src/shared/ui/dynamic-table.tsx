@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
+  type ColumnDef,
 } from "@tanstack/react-table";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +16,16 @@ import {
 } from "@/components/ui/dialog";
 import type { ConfigInterface } from "../model/schemas/configInterface";
 import DynamicForm from "./dynamic-form";
+import RowActions from "./row-actions";
 import { SkeletonRow } from "./skeleton-row";
+
+function readTotalCount(response: unknown): number | undefined {
+  const count = (response as { data?: { meta?: { count?: number } } })?.data
+    ?.meta?.count;
+  return typeof count === "number" && Number.isFinite(count)
+    ? count
+    : undefined;
+}
 
 export default function DynamicTable<
   TData,
@@ -22,12 +33,28 @@ export default function DynamicTable<
   TParams,
   TFormValues extends Record<string, unknown>,
   TMutationResponse,
+  TUpdateValues extends Record<string, unknown>,
 >({
   config,
 }: {
-  config: ConfigInterface<TData, TRow, TParams, TFormValues, TMutationResponse>;
+  config: ConfigInterface<
+    TData,
+    TRow,
+    TParams,
+    TFormValues,
+    TMutationResponse,
+    TUpdateValues
+  >;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const createMutation = useMutation({
+    mutationFn: (values: TFormValues) => config.form!.mutationFn(values),
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+      setIsModalOpen(false);
+    },
+  });
   const defaultTake = (config.table.params as any)?.take || 10;
 
   const [pagination, setPagination] = useState({
@@ -40,14 +67,40 @@ export default function DynamicTable<
   const queryParams = { ...config.table.params, skip, take } as TParams;
   const { data, isLoading, isError } = config.table.useHook(queryParams);
   const rows = data ? config.table.getRows(data) : [];
+  const totalCount = data
+    ? (config.table.getTotalCount?.(data) ?? readTotalCount(data))
+    : undefined;
+  const pageCount =
+    totalCount != null
+      ? Math.max(1, Math.ceil(totalCount / pagination.pageSize))
+      : undefined;
+
+  // Колонка действий синтетическая: конфиги остаются декларативными и не знают
+  // про JSX, а колонка появляется сама, если у сущности есть update или delete.
+  const columns = useMemo(() => {
+    const base = config.table.columns as unknown as ColumnDef<TRow>[];
+    if (!config.update && !config.delete) return base;
+
+    return [
+      ...base,
+      {
+        id: "actions",
+        header: "Действия",
+        cell: ({ row }) => <RowActions config={config} row={row.original} />,
+      } satisfies ColumnDef<TRow>,
+    ];
+  }, [config]);
 
   const table = useReactTable({
     data: rows,
-    columns: config.table.columns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => config.table.getRowId(row),
     state: { pagination },
     onPaginationChange: setPagination,
     manualPagination: true,
+    pageCount: pageCount ?? -1,
+    rowCount: totalCount,
   });
 
   return (
@@ -65,8 +118,11 @@ export default function DynamicTable<
                 <DialogTitle>Добавить запись ({config.entityName})</DialogTitle>
               </DialogHeader>
               <DynamicForm
-                config={config}
-                onSuccessCallback={() => setIsModalOpen(false)}
+                schema={config.form.schema}
+                fields={config.form.fields}
+                onSubmit={(values) => createMutation.mutate(values)}
+                isPending={createMutation.isPending}
+                isError={createMutation.isError}
               />
             </DialogContent>
           </Dialog>
@@ -96,7 +152,7 @@ export default function DynamicTable<
             {isLoading ? (
               Array.from({ length: 4 }, (_, rowIndex) => (
                 <tr key={rowIndex}>
-                  {config.table.columns.map((column, colIndex) => (
+                  {columns.map((_column, colIndex) => (
                     <td key={colIndex} className="p-4 align-middle">
                       <SkeletonRow />
                     </td>
@@ -106,7 +162,7 @@ export default function DynamicTable<
             ) : isError ? (
               <tr>
                 <td
-                  colSpan={config.table.columns.length}
+                  colSpan={columns.length}
                   className="h-24 text-center text-destructive"
                 >
                   Ошибка
@@ -114,10 +170,7 @@ export default function DynamicTable<
               </tr>
             ) : !rows.length ? (
               <tr>
-                <td
-                  colSpan={config.table.columns.length}
-                  className="h-24 text-center"
-                >
+                <td colSpan={columns.length} className="h-24 text-center">
                   Нет данных
                 </td>
               </tr>
@@ -145,6 +198,7 @@ export default function DynamicTable<
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           Страница {table.getState().pagination.pageIndex + 1}
+          {pageCount != null ? ` / ${pageCount}` : ""}
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -159,7 +213,11 @@ export default function DynamicTable<
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={rows.length < pagination.pageSize}
+            disabled={
+              pageCount != null
+                ? !table.getCanNextPage()
+                : rows.length < pagination.pageSize
+            }
           >
             Вперед
           </Button>

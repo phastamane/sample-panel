@@ -24,3 +24,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+src/entities/*
+src/pages/*
+src/shared/model/petstore.ts
+
+
+src/shared/model/schemas/*
+
+# Делаем исключение для файла .gitkeep, чтобы папка не была пустой для Git
+!src/entities/.gitkeep
+!src/pages/.gitkeep
+
+!src/shared/model/schemas/configInterface.ts

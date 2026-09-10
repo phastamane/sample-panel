@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
-import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
+import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
+import fs from "fs-extra";
+import { resetRouting } from "./lib/scaffold.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

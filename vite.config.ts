@@ -14,15 +14,19 @@ export default defineConfig(({ mode }) => {
     "overlay",
     "health",
     "stream",
-    "match",
-    "round",
     "venue",
     "manager",
     "tournament",
     "event",
     "report",
-  "boxer",
-  /* CLI_INJECT_PROXY */
+    /* CLI_PROXY_START */
+    "match",
+    "boxer",
+    "manager",
+    "stream",
+    "tournament",
+    "report",
+    /* CLI_PROXY_END */
   ];
 
   if (mode === "development" && !apiTarget) {
