@@ -26,7 +26,8 @@
     "preview": "vite preview",
     "generate:api": "orval",
     "gen": "node .cli/generate.js",
-    "rm-gen": "node .cli/remove.js"
+    "rm-gen": "node .cli/remove.js",
+    "reset-routing": "node .cli/reset-routing.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

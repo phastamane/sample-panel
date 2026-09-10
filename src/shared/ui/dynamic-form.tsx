@@ -1,47 +1,37 @@
-import { useForm } from "react-hook-form";
+import { useForm, type DefaultValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import type { ConfigInterface } from "../model/schemas/configInterface";
+import type { FormField } from "../model/schemas/configInterface";
+import type { ZodType } from "zod";
 
-export default function DynamicForm<
-  TData,
-  TRow extends object,
-  TParams,
-  TFormValues extends Record<string, unknown>,
-  TMutationResponse,
->({
-  config,
-  onSuccessCallback,
+export default function DynamicForm<TValues extends Record<string, unknown>>({
+  schema,
+  fields,
+  defaultValues,
+  onSubmit,
+  isPending,
+  isError,
 }: {
-  config: ConfigInterface<TData, TRow, TParams, TFormValues, TMutationResponse>;
-  onSuccessCallback?: () => void;
+  schema: ZodType<TValues, TValues>;
+  fields: FormField<TValues>[];
+  defaultValues?: Partial<TValues>;
+  onSubmit: (values: TValues) => void;
+  isPending?: boolean;
+  isError?: boolean;
 }) {
-  const queryClient = useQueryClient();
-  const formConfig = config.form;
-  if (!formConfig) return null;
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TFormValues>({ resolver: zodResolver(formConfig.schema) });
-
-  const mutation = useMutation({
-    mutationFn: formConfig.mutationFn,
-    onSuccess: () => {
-      queryClient.invalidateQueries();
-      onSuccessCallback?.();
-    },
+  } = useForm<TValues>({
+    resolver: zodResolver(schema) as Resolver<TValues>,
+    defaultValues: defaultValues as DefaultValues<TValues>,
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((data) => mutation.mutate(data))}
-      className="space-y-4"
-    >
-      {formConfig.fields.map((field) => (
-        <div key={field.name as string} className="flex flex-col space-y-1">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {fields.map((field) => (
+        <div key={field.name} className="flex flex-col space-y-1">
           <label className="text-sm font-medium text-foreground">
             {field.label}
           </label>
@@ -59,10 +49,10 @@ export default function DynamicForm<
         </div>
       ))}
 
-      <Button type="submit" disabled={mutation.isPending} className={"w-full"}>
-        {mutation.isPending ? "..." : "Сохранить"}
+      <Button type="submit" disabled={isPending} className={"w-full"}>
+        {isPending ? "..." : "Сохранить"}
       </Button>
-      {mutation.isError && (
+      {isError && (
         <div className="text-sm text-destructive mt-2">
           Произошла ошибка при сохранении
         </div>

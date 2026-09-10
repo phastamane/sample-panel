@@ -5,12 +5,6 @@ import {
   redirect,
   Outlet,
 } from "@tanstack/react-router";
-import { BoxerPage } from "@/pages/boxer-page";
-import { ManagerPage } from "@/pages/manager-page";
-import { MatchPage } from "@/pages/match-page";
-import { ReportPage } from "@/pages/report-page";
-import { StreamPage } from "@/pages/stream-page";
-import { TournamentPage } from "@/pages/tournament-page";
 // CLI_INJECT_IMPORT
 import { MainLayout } from "@/widgets/layouts/main-layout";
 import LoginForm from "@/widgets/login-form/login-form";
@@ -56,47 +50,11 @@ const indexRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
   path: "/",
 });
-const matchsRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/matchs",
-  component: MatchPage,
-});
-const boxersRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/boxers",
-  component: BoxerPage,
-});
-const managersRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/managers",
-  component: ManagerPage,
-});
-const streamsRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/streams",
-  component: StreamPage,
-});
-const tournamentsRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/tournaments",
-  component: TournamentPage,
-});
-const reportsRoute = createRoute({
-  getParentRoute: () => protectedLayoutRoute,
-  path: "/reports",
-  component: ReportPage,
-});
 // CLI_INJECT_ROUTE
 const routeTree = rootRoute.addChildren([
   loginRoute,
   protectedLayoutRoute.addChildren([
     indexRoute,
-    matchsRoute,
-    boxersRoute,
-    managersRoute,
-    streamsRoute,
-    tournamentsRoute,
-    reportsRoute,
     // CLI_INJECT_TREE
   ]),
 ]);

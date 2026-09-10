@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
-import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
+import { text, isCancel, intro, outro, spinner, note } from "@clack/prompts";
+import fs from "fs-extra";
+import { resetRouting } from "./lib/scaffold.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +47,11 @@ async function main() {
       path.join(targetDir, "orval.config.ts"),
       { overwrite: true },
     );
+
+    // 1.1 Кладём чистые заготовки роутера и сайдбара и убираем сущности,
+    // сгенерированные в эталонном репозитории, чтобы их пути не протекали
+    // в новый проект.
+    await resetRouting(targetDir);
 
     // 2. Адаптируем package.json под новый проект
     const pkgPath = path.join(targetDir, "package.json");

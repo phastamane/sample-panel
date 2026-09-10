@@ -21,6 +21,7 @@ export interface ConfigInterface<
   TParams = void,
   TFormValues extends Record<string, unknown> = Record<string, unknown>,
   TMutationResponse = unknown,
+  TUpdateValues extends Record<string, unknown> = TFormValues,
 > {
   entityName: string;
   table: {
@@ -35,11 +36,26 @@ export interface ConfigInterface<
       }) => React.ReactNode;
     }[];
     getRows: (response: TData) => TRow[];
+    getTotalCount?: (response: TData) => number | undefined;
+    // Идентификатор записи: у каждой сущности свой ключ (boxerId, matchId, ...)
+    getRowId: (row: TRow) => string;
   };
   form?: {
     schema: ZodType<TFormValues, TFormValues>;
     mutationFn: (data: TFormValues) => Promise<TMutationResponse>;
     fields: FormField<TFormValues>[];
+  };
+  update?: {
+    schema: ZodType<TUpdateValues, TUpdateValues>;
+    fields: FormField<TUpdateValues>[];
+    mutationFn: (id: string, data: TUpdateValues) => Promise<unknown>;
+    // Схема списка и схема обновления могут не совпадать по именам полей,
+    // поэтому маппинг строки в значения формы задает конфиг.
+    getDefaultValues?: (row: TRow) => Partial<TUpdateValues>;
+  };
+  delete?: {
+    mutationFn: (id: string) => Promise<unknown>;
+    confirmLabel?: (row: TRow) => string;
   };
 }
 
@@ -49,8 +65,23 @@ export function defineTableConfig<
   TParams = void,
   TFormValues extends Record<string, unknown> = Record<string, unknown>,
   TMutationResponse = unknown,
+  TUpdateValues extends Record<string, unknown> = TFormValues,
 >(
-  config: ConfigInterface<TData, TRow, TParams, TFormValues, TMutationResponse>,
-): ConfigInterface<TData, TRow, TParams, TFormValues, TMutationResponse> {
+  config: ConfigInterface<
+    TData,
+    TRow,
+    TParams,
+    TFormValues,
+    TMutationResponse,
+    TUpdateValues
+  >,
+): ConfigInterface<
+  TData,
+  TRow,
+  TParams,
+  TFormValues,
+  TMutationResponse,
+  TUpdateValues
+> {
   return config;
 }
